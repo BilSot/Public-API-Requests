@@ -58,9 +58,44 @@ function generateCards(users) {
         divCard.appendChild(divImgContainer);
         divCard.appendChild(divInfoContainer);
         document.querySelector('div.gallery').appendChild(divCard);
-        divCard.addEventListener('click', function(event){
-            event.stopPropagation();
-            console.log(event.target);
-        })
+
+        $(divCard).click( event => {
+            createModal();
+            let index = event.target.closest('div.card').id;
+            displayUserInfo(index);
+        });
     }
+}
+
+function createModal(){
+    let divModalContainer = document.createElement('div');
+    divModalContainer.classList.add("modal-container");
+    divModalContainer.innerHTML =
+        `<div class="modal">
+           <button type="button" id="modal-close-btn" class="modal-close-btn"><strong>X</strong></button>
+        </div>`;
+    document.body.appendChild(divModalContainer);
+
+    $("#modal-close-btn").click(event => $(".modal-container").remove());
+}
+
+function displayUserInfo(index){
+    var userObj = usersArr[index];
+    console.log(userObj);
+    let divModalInfoContainer = document.createElement('div');
+    divModalInfoContainer.classList.add("modal-info-container");
+    let dateOfBirth = userObj.dob.date;
+    let dobRegExp = /^(\d{4})-(\d{2})-(\d{2}).+/;
+    let match = dateOfBirth.replace(dobRegExp, "$3/$2/$1");
+    console.log(match);
+    divModalInfoContainer.innerHTML =
+        `<img class="modal-img" src=${userObj.picture.large} alt="profile picture">
+        <h3 id="name" class="modal-name cap">${userObj.name.first} ${userObj.name.last}</h3>
+        <p class="modal-text">${userObj.email}</p>
+        <p class="modal-text cap">${userObj.location.city}</p>
+        <hr>
+        <p class="modal-text">${userObj.phone}</p>
+        <p class="modal-text">${userObj.location.street.number} ${userObj.location.street.name}, ${userObj.location.city}, ${userObj.location.state} ${userObj.location.postcode}</p>
+        <p class="modal-text">Birthday: ${match}</p>`;
+    $('.modal').append(divModalInfoContainer);
 }
