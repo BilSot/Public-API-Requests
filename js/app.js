@@ -5,8 +5,8 @@
 const apiURL = "https://randomuser.me/api/?results=";
 const users = 12;
 const nationalities = ['gb', 'us'];
-var defaultUsersArr = [];
-var filteredArr = [];
+var userDataArray = [];
+var filteredArray = [];
 
 window.onload = function () {
     document.querySelector('div.gallery').innerHTML =
@@ -14,8 +14,8 @@ window.onload = function () {
     fetchData(apiURL + users + "&nat=" + nationalities)
         .then(data => {
             document.querySelector('div.gallery').innerHTML = '';
-            defaultUsersArr = data.results;
-            generateCards(defaultUsersArr);
+            userDataArray = data.results;
+            generateCards(userDataArray);
             addSearchTextField();
         })
         .catch(err => {
@@ -40,37 +40,43 @@ function checkStatus(response) {
 }
 
 function generateCards(users) {
-    filteredArr = users;
-    document.querySelector('div.gallery').innerHTML = '';
-    console.log(users);
-    for (let i = 0; i < filteredArr.length; i++) {
-        let divCard = document.createElement('div');
-        divCard.classList.add("card");
-        divCard.id = i;
+    if(users.length == 0){
+        document.querySelector('div.gallery').innerHTML = `<h2>No employees found</h2>`;
+    }else {
+        filteredArray = users;
+        document.querySelector('div.gallery').innerHTML = '';
 
-        let divImgContainer = document.createElement('div');
-        divImgContainer.classList.add("card-img-container");
-        divImgContainer.innerHTML = `<img class="card-img" src=${filteredArr[i].picture.large} alt="profile picture">`;
+        for (let i = 0; i < filteredArray.length; i++) {
+            let divCard = document.createElement('div');
+            divCard.classList.add("card");
+            divCard.id = i;
 
-        let divInfoContainer = document.createElement('div');
-        divInfoContainer.classList.add("card-info-container");
-        divInfoContainer.innerHTML =
-            `<h3 id="name-${i}" class="card-name cap">${filteredArr[i].name.first} ${filteredArr[i].name.last}</h3>
-            <p class="card-text">${filteredArr[i].email}</p>
-            <p class="card-text cap">${filteredArr[i].location.city}, ${filteredArr[i].location.state}</p>`;
+            let divImgContainer = document.createElement('div');
+            divImgContainer.classList.add("card-img-container");
+            divImgContainer.innerHTML = `<img class="card-img" src=${filteredArray[i].picture.large} alt="profile picture">`;
 
-        divCard.appendChild(divImgContainer);
-        divCard.appendChild(divInfoContainer);
-        document.querySelector('div.gallery').appendChild(divCard);
+            let divInfoContainer = document.createElement('div');
+            divInfoContainer.classList.add("card-info-container");
+            divInfoContainer.innerHTML =
+                `<h3 id="name-${i}" class="card-name cap">${filteredArray[i].name.first} ${filteredArray[i].name.last}</h3>
+                <p class="card-text">${filteredArray[i].email}</p>
+                <p class="card-text cap">${filteredArray[i].location.city}, ${filteredArray[i].location.state}</p>`;
 
-        $(divCard).click(event => {
-            let index = event.target.closest('div.card').id;
-            createModal(index);
-        });
+            divCard.appendChild(divImgContainer);
+            divCard.appendChild(divInfoContainer);
+            document.querySelector('div.gallery').appendChild(divCard);
+
+            $(divCard).click(event => {
+                let userDataIndex = event.target.closest('div.card').id;
+                createModal();
+                addBrowsingButtons(userDataIndex);
+                displayUserInfo(userDataIndex);
+            });
+        }
     }
 }
 
-function createModal(index) {
+function createModal() {
     let divModalContainer = document.createElement('div');
     divModalContainer.classList.add("modal-container");
     divModalContainer.innerHTML =
@@ -82,15 +88,19 @@ function createModal(index) {
     let divModalInfoContainer = document.createElement('div');
     divModalInfoContainer.classList.add("modal-info-container");
     document.querySelector('div.modal').appendChild(divModalInfoContainer);
+    document.querySelector('div.modal').classList.add( 'zoomIn',  'animated');
 
-    addBrowsingButtons(index);
-    displayUserInfo(index);
-
-    $("#modal-close-btn").click(event => $(".modal-container").remove());
+    $("#modal-close-btn").click(event => {
+        $('.modal').attr('class', 'modal  zoomOut  animated');
+        $('.modal-btn-container').attr('class', 'modal-btn-container  zoomOut  animated');
+        setTimeout(function(){
+            $(".modal-container").remove();
+        }, 500);
+    });
 }
 
-function displayUserInfo(index) {
-    let userObj = filteredArr[index];
+function displayUserInfo(userDataIndex) {
+    let userObj = filteredArray[userDataIndex];
     let divModalInfoContainer = document.querySelector('div.modal-info-container');
     let dateOfBirth = userObj.dob.date;
     let dobRegExp = /^(\d{4})-(\d{2})-(\d{2}).+/;
@@ -107,32 +117,33 @@ function displayUserInfo(index) {
         <p class="modal-text">Birthday: ${match}</p>`;
 }
 
-function addBrowsingButtons(index) {
+function addBrowsingButtons(userDataIndex) {
     let divModalButtons = document.createElement('div');
     divModalButtons.classList.add("modal-btn-container");
     divModalButtons.innerHTML =
         `<button type="button" id="modal-prev" class="modal-prev btn">Prev</button>
          <button type="button" id="modal-next" class="modal-next btn">Next</button>`;
     document.querySelector('div.modal-container').appendChild(divModalButtons);
+    divModalButtons.classList.add( 'zoomIn',  'animated');
 
     $('#modal-prev').click(event => {
-        if (index == 0) {
-            index = filteredArr.length - 1;
+        if (userDataIndex == 0) {
+            userDataIndex = filteredArray.length - 1;
         } else {
-            --index;
+            --userDataIndex;
         }
-        $('.modal-info-container').innerHTML = '';
-        displayUserInfo(index);
+        $('.modal-info-container').html("");
+        displayUserInfo(userDataIndex);
     });
 
     $('#modal-next').click(event => {
-        if (index == filteredArr.length - 1) {
-            index = 0;
+        if (userDataIndex == filteredArray.length - 1) {
+            userDataIndex = 0;
         } else {
-            ++index;
+            ++userDataIndex;
         }
-        $('.modal-info-container').innerHTML = '';
-        displayUserInfo(index);
+        $('.modal-info-container').html("");
+        displayUserInfo(userDataIndex);
     });
 }
 
@@ -173,14 +184,13 @@ function handleMouseup(event){
 }
 
 function searchTerm(searchTerm) {
-    console.log(searchTerm);
     if(searchTerm === ""){
-        generateCards(defaultUsersArr);
+        generateCards(userDataArray);
         return;
     }
     searchTerm = searchTerm.toLowerCase();
     let searchResults = [];
-    defaultUsersArr.forEach(user => {
+    userDataArray.forEach(user => {
         let userFirstName = user.name.first.toLowerCase();
         let userLastName = user.name.last.toLowerCase();
         if (userFirstName.indexOf(searchTerm) > -1 || userLastName.indexOf(searchTerm) > -1) {

@@ -16,7 +16,8 @@ html, body {
 body {
     font-family: "Nunito", sans-serif;
     text-align: center;
-    background: rgba(235, 235, 235, 0.9);
+    background-image: url("../pencils.jpg");
+    background-size: cover;
 }
 
 header {
@@ -118,7 +119,6 @@ header h1 {
 .cap {
     text-transform: capitalize;
 }
-
 
 /* ===================================== 
    Modal
